@@ -5,3 +5,36 @@ __pycache__/
 *.sqlite3
 .venv/
 
+.neon
+node_modules/
+# Python virtual environments
+venv/
+.venv/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Database files and backups
+*.sqlite3
+*.dump
+*.backup
+local_data_backup.json
+
+# Uploaded media
+media/
+
+# Static files collected for production
+staticfiles/
+
+# Node dependencies
+node_modules/
+
+# Antigravity local configuration
+.agents/
