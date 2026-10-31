@@ -1,0 +1,193 @@
+{% extends "myapp/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Claim Requests | CampusFind Admin{% endblock %}
+{% block page_title %}Claim Requests{% endblock %}
+{% block page_subtitle %}Review student ownership claims, verify credentials, and approve reunions{% endblock %}
+
+{% block content %}
+<!-- Claims Status Navigation Tabs -->
+<div class="filter-bar-container">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="{% url 'admin_claims' %}" class="btn-admin btn-admin-sm {% if not status_filter %}btn-admin-primary{% else %}btn-admin-outline{% endif %}">
+            All Claims ({{ total_claims_count }})
+        </a>
+        <a href="{% url 'admin_claims' %}?status=pending" class="btn-admin btn-admin-sm {% if status_filter == 'pending' %}btn-admin-copper{% else %}btn-admin-outline{% endif %}">
+            Pending ({{ pending_count }})
+        </a>
+        <a href="{% url 'admin_claims' %}?status=approved" class="btn-admin btn-admin-sm {% if status_filter == 'approved' %}btn-admin-success{% else %}btn-admin-outline{% endif %}">
+            Approved ({{ approved_count }})
+        </a>
+        <a href="{% url 'admin_claims' %}?status=rejected" class="btn-admin btn-admin-sm {% if status_filter == 'rejected' %}btn-admin-danger{% else %}btn-admin-outline{% endif %}">
+            Rejected ({{ rejected_count }})
+        </a>
+    </div>
+
+    <div>
+        <input type="text" data-table-search="claimsTable" class="admin-input" placeholder="Search claims..." style="max-width: 240px; padding: 7px 14px 7px 34px;">
+    </div>
+</div>
+
+<!-- Claims Table Card -->
+<div class="panel-card">
+    <div class="panel-card-header">
+        <h3 class="panel-card-title">
+            <span>Claim Submissions ({{ claims|length }})</span>
+        </h3>
+    </div>
+
+    <div class="table-responsive-wrapper">
+        <table id="claimsTable" class="admin-table">
+            <thead>
+                <tr>
+                    <th>Claim ID</th>
+                    <th>Target Item</th>
+                    <th>Claimant Name</th>
+                    <th>Contact Info</th>
+                    <th>Submission Date</th>
+                    <th>Status</th>
+                    <th>Verification Message</th>
+                    <th style="text-align: right;">Review Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for claim in claims %}
+                    <tr>
+                        <td><strong>#{{ claim.id }}</strong></td>
+                        <td>
+                            <strong>{{ claim.item.name }}</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                                {{ claim.item.category }} &bull; {{ claim.item.location }}
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ claim.claimant_name }}</strong>
+                        </td>
+                        <td><code>{{ claim.claimant_contact }}</code></td>
+                        <td>{{ claim.created_at|date:"M j, Y H:i" }}</td>
+                        <td>
+                            {% if claim.status == 'pending' %}
+                                <span class="badge badge-pending">Pending Review</span>
+                            {% elif claim.status == 'approved' %}
+                                <span class="badge badge-approved">Approved</span>
+                            {% else %}
+                                <span class="badge badge-rejected">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem;">
+                                {{ claim.message }}
+                            </div>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <!-- View Message Modal Button -->
+                            <button type="button" class="btn-admin btn-admin-sm btn-admin-outline" onclick="openClaimDetailModal({{ claim.id }}, '{{ claim.claimant_name|escapejs }}', '{{ claim.claimant_contact|escapejs }}', '{{ claim.item.name|escapejs }}', '{{ claim.message|escapejs }}', '{{ claim.status|escapejs }}', '{{ claim.created_at|date:"M j, Y H:i" }}')">
+                                Details
+                            </button>
+
+                            {% if claim.status == 'pending' %}
+                                <form method="POST" action="{% url 'admin_update_claim_status' claim.id %}" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="approved">
+                                    <button type="submit" class="btn-admin btn-admin-sm btn-admin-success" title="Approve Claim">
+                                        Approve
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{% url 'admin_update_claim_status' claim.id %}" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="btn-admin btn-admin-sm btn-admin-danger" title="Reject Claim">
+                                        Reject
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            No claim requests found under this status.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ================= CLAIM DETAILS MODAL ================= -->
+<div id="claimDetailModal" class="admin-modal-backdrop">
+    <div class="admin-modal-box">
+        <div class="modal-header">
+            <h3 class="modal-title">Claim Request Details</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('claimDetailModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Claimed Item</label>
+                <div id="modalItemName" style="font-size: 1.15rem; font-weight: 700; color: var(--color-aubergine);"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Claimant Name</label>
+                    <div id="modalClaimantName" style="font-weight: 600;"></div>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Contact</label>
+                    <div id="modalClaimantContact" style="font-weight: 600;"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Submitted At</label>
+                <div id="modalSubmittedAt" style="font-size: 0.88rem; color: var(--text-secondary);"></div>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Ownership Verification Message</label>
+                <div id="modalClaimMessage" style="background: var(--bg-primary); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.92rem; line-height: 1.5; white-space: pre-wrap; margin-top: 6px;"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer" id="modalActions">
+            <button type="button" class="btn-admin btn-admin-outline" onclick="closeModal('claimDetailModal')">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openClaimDetailModal(id, claimant, contact, item, message, status, submittedAt) {
+    document.getElementById('modalItemName').textContent = item;
+    document.getElementById('modalClaimantName').textContent = claimant;
+    document.getElementById('modalClaimantContact').textContent = contact;
+    document.getElementById('modalClaimMessage').textContent = message;
+    document.getElementById('modalSubmittedAt').textContent = submittedAt;
+
+    const actionsContainer = document.getElementById('modalActions');
+    let actionButtons = `<button type="button" class="btn-admin btn-admin-outline" onclick="closeModal('claimDetailModal')">Close</button>`;
+
+    if (status === 'pending') {
+        actionButtons = `
+            <button type="button" class="btn-admin btn-admin-outline" onclick="closeModal('claimDetailModal')">Close</button>
+            <form method="POST" action="/admin-dashboard/claims/${id}/update/" style="display: inline-block;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" name="status" value="approved">
+                <button type="submit" class="btn-admin btn-admin-success">Approve Ownership</button>
+            </form>
+            <form method="POST" action="/admin-dashboard/claims/${id}/update/" style="display: inline-block;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" name="status" value="rejected">
+                <button type="submit" class="btn-admin btn-admin-danger">Reject Claim</button>
+            </form>
+        `;
+    }
+    actionsContainer.innerHTML = actionButtons;
+    openModal('claimDetailModal');
+}
+</script>
+{% endblock %}
+

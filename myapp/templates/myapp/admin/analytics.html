@@ -1,0 +1,235 @@
+{% extends "myapp/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Reports & Analytics | CampusFind Admin{% endblock %}
+{% block page_title %}Reports &amp; Analytics{% endblock %}
+{% block page_subtitle %}Comprehensive campus lost &amp; found intelligence and resolution metrics{% endblock %}
+
+{% block content %}
+<!-- KPI Summary Cards -->
+<section class="stats-grid-4">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-card-title">Return Rate</span>
+            <div class="stat-card-icon-wrap icon-wrap-found">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card-value" style="color: var(--status-found-text);">{{ return_rate }}%</div>
+        <div class="stat-card-subtitle">
+            <span>Approved claim ratio</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-card-title">Resolution Speed</span>
+            <div class="stat-card-icon-wrap icon-wrap-copper">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card-value" style="color: var(--color-copper);">~2.4d</div>
+        <div class="stat-card-subtitle">
+            <span>Avg. campus recovery time</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-card-title">Top Category</span>
+            <div class="stat-card-icon-wrap icon-wrap-aubergine">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card-value" style="font-size: 1.8rem; line-height: 1.2;">{{ top_category|default:"Electronics" }}</div>
+        <div class="stat-card-subtitle">
+            <span>Most frequent reports</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-card-title">Top Hotspot</span>
+            <div class="stat-card-icon-wrap icon-wrap-lost">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card-value" style="font-size: 1.8rem; line-height: 1.2;">{{ top_location|default:"Library" }}</div>
+        <div class="stat-card-subtitle">
+            <span>Most items lost / found</span>
+        </div>
+    </div>
+</section>
+
+<!-- Deep Analytics Charts -->
+<section class="charts-grid-2">
+    <!-- Monthly Progression -->
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <h3 class="chart-card-title">
+                <span>Monthly Reporting Volume</span>
+            </h3>
+            <span class="badge badge-neutral">Trend Curve</span>
+        </div>
+        <div class="chart-canvas-wrapper" style="height: 300px;">
+            <canvas id="analyticsMonthlyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <h3 class="chart-card-title">
+                <span>Item Types by Category</span>
+            </h3>
+            <span class="badge badge-neutral">Database Distribution</span>
+        </div>
+        <div class="chart-canvas-wrapper" style="height: 300px;">
+            <canvas id="analyticsCategoryChart"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- Location Hotspots Table -->
+<div class="panel-card">
+    <div class="panel-card-header">
+        <h3 class="panel-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Campus Location Activity Breakdown</span>
+        </h3>
+    </div>
+
+    <div class="table-responsive-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Campus Location</th>
+                    <th>Total Reports</th>
+                    <th>Lost Items</th>
+                    <th>Found Items</th>
+                    <th>Activity Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loc in location_stats %}
+                    <tr>
+                        <td>
+                            <strong>{{ loc.location }}</strong>
+                        </td>
+                        <td>{{ loc.total }}</td>
+                        <td><span style="color: var(--status-lost); font-weight: 700;">{{ loc.lost }}</span></td>
+                        <td><span style="color: var(--status-found-text); font-weight: 700;">{{ loc.found }}</span></td>
+                        <td>
+                            {% if loc.total >= 5 %}
+                                <span class="badge badge-lost">High Activity Area</span>
+                            {% elif loc.total >= 2 %}
+                                <span class="badge badge-pending">Moderate</span>
+                            {% else %}
+                                <span class="badge badge-found">Low Incidence</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                            No location data recorded yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{ chart_data|json_script:"analytics-chart-data" }}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dataElem = document.getElementById('analytics-chart-data');
+    if (!dataElem) return;
+
+    let cData = {};
+    try {
+        cData = JSON.parse(dataElem.textContent || '{}');
+    } catch (e) {
+        return;
+    }
+
+    const colorAubergine = '#342638';
+    const colorCopper = '#B66F52';
+
+    // 1. Monthly Curve
+    const ctxMonthly = document.getElementById('analyticsMonthlyChart');
+    if (ctxMonthly && cData.month_labels) {
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: cData.month_labels,
+                datasets: [{
+                    label: 'Reports Filed',
+                    data: cData.month_counts,
+                    backgroundColor: colorCopper,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#E8DED1' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // 2. Category Chart
+    const ctxCat = document.getElementById('analyticsCategoryChart');
+    if (ctxCat && cData.category_labels) {
+        new Chart(ctxCat, {
+            type: 'polarArea',
+            data: {
+                labels: cData.category_labels,
+                datasets: [{
+                    data: cData.category_counts,
+                    backgroundColor: [
+                        'rgba(52, 38, 56, 0.85)',
+                        'rgba(182, 111, 82, 0.85)',
+                        'rgba(156, 203, 135, 0.85)',
+                        'rgba(201, 109, 69, 0.85)',
+                        'rgba(217, 130, 43, 0.85)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#FFFCF7'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

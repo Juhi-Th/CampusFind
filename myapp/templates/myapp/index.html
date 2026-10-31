@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="CampusFind - A trusted space for students to report lost items and reunite them with their owners. Together, we keep our campus community connected.">
+    <title>CampusFind | Lost something? Find your way back.</title>
+
+    <!-- Google Fonts: Playfair Display (Headings) & Plus Jakarta Sans (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Favicon: Unique CampusFind Emblem (Clock Tower, Path, Location Pin) -->
+    {% load static %}
+    <link rel="icon" type="image/svg+xml" href="{% static 'myapp/logo-symbol.svg' %}">
+    <link rel="stylesheet" href="{% static 'myapp/style.css' %}?v={% now 'U' %}">
+
+    <!-- High-Priority Styling for Contact Actions & Modal Alignment -->
+    <style>
+        .contact-action-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .contact-action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .contact-action-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-contact-us {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 9px !important;
+            width: 100% !important;
+            min-height: 46px !important;
+            padding: 12px 20px !important;
+            border-radius: var(--radius-full) !important;
+            font-size: 0.92rem !important;
+            font-weight: 700 !important;
+            font-family: inherit !important;
+            text-decoration: none !important;
+            color: #ffffff !important;
+            cursor: pointer !important;
+            border: none !important;
+            box-sizing: border-box !important;
+            transition: var(--transition) !important;
+        }
+
+        .btn-contact-us.btn-contact-whatsapp {
+            background: #25D366 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35) !important;
+        }
+
+        .btn-contact-us.btn-contact-whatsapp:hover {
+            background: #20ba5a !important;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-contact-us.btn-contact-call {
+            background: #342638 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(52, 38, 56, 0.25) !important;
+        }
+
+        .btn-contact-us.btn-contact-call:hover {
+            background: #48354e !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-contact-us.btn-contact-email {
+            background: #B66F52 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(182, 111, 82, 0.3) !important;
+        }
+
+        .btn-contact-us.btn-contact-email:hover {
+            background: #9c5c42 !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-contact-us.btn-contact-claim {
+            background: #342638 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-contact-us.btn-contact-claim:hover {
+            background: #B66F52 !important;
+            transform: translateY(-2px) !important;
+        }
+
+        #claimModal .modal-footer {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 18px 24px !important;
+        }
+
+        #deleteItemModalBtn,
+        #doneClaimModalBtn {
+            flex: 1 1 0px !important;
+            max-width: 180px !important;
+            min-width: 140px !important;
+            height: 44px !important;
+            min-height: 44px !important;
+            padding: 0 20px !important;
+            font-size: 0.9rem !important;
+            font-weight: 700 !important;
+            font-family: inherit !important;
+            border-radius: var(--radius-full) !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: all 180ms ease !important;
+        }
+
+        #deleteItemModalBtn {
+            background: #fdf2f2 !important;
+            color: #c96d45 !important;
+            border: 1.5px solid #fbdad0 !important;
+            gap: 6px !important;
+        }
+
+        #deleteItemModalBtn:hover {
+            background: #c96d45 !important;
+            color: #ffffff !important;
+        }
+
+        #deleteItemModalBtn[style*="display: none"],
+        #deleteItemModalBtn[style*="display:none"] {
+            display: none !important;
+        }
+
+        #deleteItemModalBtn[style*="display: inline-flex"] {
+            display: inline-flex !important;
+        }
+
+        #doneClaimModalBtn {
+            display: inline-flex !important;
+            background: #342638 !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+
+        #doneClaimModalBtn:hover {
+            background: #B66F52 !important;
+            box-shadow: 0 4px 14px rgba(182, 111, 82, 0.35) !important;
+        }
+    </style>
+
+    <!-- Theme Initialization Script -->
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('campusfind_theme');
+                var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = savedTheme || (systemDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+<body>
+    <!-- Navigation Bar (Matching Reference) -->
+    <header class="navbar">
+        <div class="nav-container">
+            <!-- Unique CampusFind Brand Logo (Emblem + Wordmark) -->
+            <a href="{% url 'home' %}" class="brand-link" title="CampusFind Home">
+                <img class="brand-logo-img" src="{% static 'myapp/logo-symbol.svg' %}" alt="CampusFind Emblem" width="44" height="44">
+                <span class="brand-name"><span class="brand-name-campus">Campus</span><span class="brand-name-find">Find<span class="brand-sparkle">✦</span></span></span>
+            </a>
+
+            <!-- Editorial Nav Links with Copper Active Line -->
+            <nav class="nav-links">
+                <a href="{% url 'home' %}" class="nav-item active-nav">Home</a>
+                <a href="#community-board" class="nav-item">Browse Items</a>
+                <a href="#report-section" id="navReportLink" class="nav-item">Report Item</a>
+                <a href="#how-it-works" class="nav-item">How It Works</a>
+                <a href="#about-section" class="nav-item">About</a>
+            </nav>
+
+            <!-- Right Actions: Search, Theme Toggle, Notification Bell, User Avatar -->
+            <div class="nav-actions">
+                <!-- Search Icon Trigger -->
+                <button type="button" class="nav-icon-btn" id="navSearchTrigger" aria-label="Search items" title="Search">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleBtn" class="nav-icon-btn theme-toggle-btn" type="button" aria-label="Toggle dark/light mode" title="Toggle theme">
+                    <svg class="theme-icon moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="theme-icon sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+
+                <!-- Notification Bell with Dropdown Panel -->
+                <div class="nav-notification-wrapper" id="navNotificationWrapper">
+                    <button type="button" class="nav-icon-btn" id="navNotificationBtn" aria-label="Notifications" title="Notifications" aria-expanded="false" aria-haspopup="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="notification-badge-dot" id="navNotificationBadge" style="display: none;"></span>
+                    </button>
+
+                    <!-- Floating Notification Popup Panel - strictly hidden by default -->
+                    <div class="notification-popup-panel" id="notificationPanel" hidden style="display: none;">
+                        <div class="notif-panel-header">
+                            <div class="notif-header-title-group">
+                                <h3 class="notif-header-title">Notifications</h3>
+                                <span class="notif-count-pill" id="notifUnreadPill">0 new</span>
+                            </div>
+                            <div class="notif-header-actions">
+                                <button type="button" class="notif-action-btn" id="notifMarkAllReadBtn" title="Mark all notifications as read">
+                                    Mark all read
+                                </button>
+                                <button type="button" class="notif-close-btn" id="notifCloseBtn" aria-label="Close notifications panel" title="Close">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Notification List -->
+                        <div class="notif-panel-body" id="notifPanelBody">
+                            <!-- Loading State -->
+                            <div class="notif-loading-state" id="notifLoadingState" style="display: none;">
+                                <span class="notif-spinner"></span>
+                                <span>Loading notifications...</span>
+                            </div>
+
+                            <!-- List Container -->
+                            <div class="notif-list" id="notifList"></div>
+
+                            <!-- Empty State -->
+                            <div class="notif-empty-state" id="notifEmptyState" style="display: none;">
+                                <div class="notif-empty-icon">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                    </svg>
+                                </div>
+                                <p class="notif-empty-title">You're all caught up!</p>
+                                <p class="notif-empty-subtitle">New notifications regarding reported items and claims will appear here.</p>
+                            </div>
+
+                            <!-- Error State with Retry Button -->
+                            <div class="notif-error-state" id="notifErrorState" style="display: none;">
+                                <div class="notif-error-icon">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <p class="notif-error-title">Unable to load notifications</p>
+                                <p class="notif-error-subtitle" id="notifErrorSubtitle">Please try again.</p>
+                                <button type="button" class="notif-retry-btn" id="notifRetryBtn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                    </svg>
+                                    <span>Retry</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Profile Avatar Pill -->
+                {% if user.is_authenticated %}
+                {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" class="btn-browse-hero" style="padding: 6px 14px; font-size: 0.8rem; background: rgba(182, 111, 82, 0.15); border: 1.5px solid var(--color-copper); color: var(--color-copper); text-decoration: none;" title="Admin Dashboard">
+                    Admin
+                </a>
+                {% endif %}
+                <a href="{% url 'profile' %}" class="user-avatar-pill" title="Profile Dashboard ({{ user.username }})">
+                    <div class="avatar-circle">
+                        {{ user.username|make_list|first|upper }}
+                    </div>
+                    <svg class="chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn-browse-hero" style="padding: 8px 18px; font-size: 0.88rem;">
+                    Sign in
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if messages %}
+    <div style="background: rgba(182, 111, 82, 0.15); border-bottom: 1px solid var(--border-color); padding: 10px 24px;">
+        <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px;">
+            {% for message in messages %}
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; font-weight: 600; color: #342638;">
+                <span>{{ message }}</span>
+                <button type="button" style="background: none; border: none; font-size: 1rem; cursor: pointer;" onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ======================================================================
+         Hero Section (Two-Column Editorial Layout matching Dribbble reference)
+         ====================================================================== -->
+    <section class="hero-editorial">
+        <!-- Floating Handwritten Note centered above the hero visual -->
+        <div class="hero-floating-note">
+            <span>A kinder campus for everyone &hearts;</span>
+            <svg width="30" height="22" viewBox="0 0 36 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 18C12 22 22 18 32 6M32 6L25 5M32 6L30 13"/>
+            </svg>
+        </div>
+
+        <div class="hero-grid">
+            <!-- Left Hero Content -->
+            <div class="hero-left-content">
+                <div class="pill-eyebrow">
+                    <span>CAMPUS LOST &amp; FOUND</span>
+                </div>
+
+                <h1 class="hero-heading">
+                    Lost something?<br>
+                    <span class="text-copper">Find your way back.</span>
+                </h1>
+
+                <p class="hero-subtext">
+                    A trusted space for students to report lost items and reunite
+                    them with their owners. Together, we keep our campus community connected.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="#community-board" class="btn-browse-hero">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <span>Browse Items &rarr;</span>
+                    </a>
+
+                    <button id="reportButton" type="button" class="btn-report-hero">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Report an Item</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Hero Visual with Collegiate Quad and 3 Floating Stat Cards -->
+            <div class="hero-visual-col">
+                <div class="campus-photo-wrapper">
+                    <!-- Collegiate campus building with clocktower and quad lawn matching reference -->
+                    <img class="campus-photo"
+                         src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80"
+                         alt="Collegiate campus quad with historic clock tower">
+                </div>
+
+                <!-- 3 Floating Stat Cards Stacked on Right (Overlapping photo cleanly) -->
+                <div class="hero-floating-stats">
+                    <!-- Stat Card 1: Items Reunited -->
+                    <div class="floating-stat-card">
+                        <div class="stat-icon-circle icon-circle-teal">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-text-group">
+                            <span class="stat-headline-num" id="metricReunited">{{ reunited_display }}</span>
+                            <span class="stat-sublabel">Items Reunited</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 2: Active Students -->
+                    <div class="floating-stat-card">
+                        <div class="stat-icon-circle icon-circle-coral">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-text-group">
+                            <span class="stat-headline-num" id="metricStudents">{{ students_display }}</span>
+                            <span class="stat-sublabel">Active Students</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 3: Return Success Rate -->
+                    <div class="floating-stat-card">
+                        <div class="stat-icon-circle icon-circle-sage">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-text-group">
+                            <span class="stat-headline-num" id="metricRate">{{ rate_display }}</span>
+                            <span class="stat-sublabel">Return Success Rate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hidden compatibility counters for script.js -->
+    <span id="metricLostCount" class="sr-only">0</span>
+    <span id="metricFoundCount" class="sr-only">0</span>
+
+    <!-- ======================================================================
+         Floating Search and Filter Bar (Sleek Pill Capsule matching Reference)
+         ====================================================================== -->
+    <div class="floating-search-bar-wrap" id="search-section">
+        <div class="search-filter-card">
+            <!-- Main Text Input -->
+            <div class="search-main-input-group">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input id="searchInput" type="text"
+                    placeholder="Search for items (e.g. laptop, water bottle, ID card...)"
+                    autocomplete="off">
+                <button id="clearSearchBtn" class="clear-btn" type="button" title="Clear search" hidden>✕</button>
+            </div>
+
+            <!-- Divider -->
+            <div class="search-divider"></div>
+
+            <!-- Select Pills Group -->
+            <div class="filter-select-pill-group">
+                <!-- Category Select Dropdown -->
+                <div class="select-pill-wrap">
+                    <svg class="select-pill-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <select id="categoryFilter" class="filter-select-pill" aria-label="Category filter">
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="ID Cards">ID Cards</option>
+                        <option value="Books & Notes">Books &amp; Notes</option>
+                        <option value="Keys">Keys</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Bags & Wallets">Bags &amp; Wallets</option>
+                    </select>
+                </div>
+
+                <!-- Divider -->
+                <div class="search-divider"></div>
+
+                <!-- Location Select Dropdown -->
+                <div class="select-pill-wrap">
+                    <svg class="select-pill-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <select id="locationFilter" class="filter-select-pill" aria-label="Location filter">
+                        <option value="">All Locations</option>
+                        {% for loc in locations %}
+                        <option value="{{ loc }}">{{ loc }}</option>
+                        {% empty %}
+                        <option value="Library">Library</option>
+                        <option value="Student Center">Student Center</option>
+                        <option value="Engineering Block">Engineering Block</option>
+                        <option value="Cafeteria">Cafeteria</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Divider -->
+                <div class="search-divider"></div>
+
+                <!-- Sorting Select Dropdown -->
+                <div class="select-pill-wrap">
+                    <svg class="select-pill-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <polyline points="19 12 12 19 5 12"></polyline>
+                    </svg>
+                    <select id="sortOrder" class="filter-select-pill" aria-label="Sort order">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="alphabetical">Alphabetical</option>
+                    </select>
+                </div>
+
+                <!-- Search Button -->
+                <button type="button" id="searchSubmitBtn" class="btn-search-submit">
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         Category Chips Row (Pill Buttons with Icons from Reference)
+         ====================================================================== -->
+    <div class="category-chips-row">
+        <button class="category-chip active" data-category="">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>All Items</span>
+        </button>
+
+        <button class="category-chip" data-category="Electronics">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>Electronics</span>
+        </button>
+
+        <button class="category-chip" data-category="Bags & Wallets">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <span>Bags &amp; Wallets</span>
+        </button>
+
+        <button class="category-chip" data-category="Books & Notes">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Books &amp; Stationery</span>
+        </button>
+
+        <button class="category-chip" data-category="Clothing">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path>
+            </svg>
+            <span>Clothing</span>
+        </button>
+
+        <button class="category-chip" data-category="Accessories">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="7.5" cy="15.5" r="5.5"></circle>
+                <path d="m21 2-9.6 9.6"></path>
+                <path d="m15.5 7.5 3 3L22 7l-3-3"></path>
+            </svg>
+            <span>Accessories</span>
+        </button>
+
+        <button class="category-chip" data-category="ID Cards">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <line x1="7" y1="8" x2="7.01" y2="8"></line>
+                <line x1="11" y1="8" x2="17" y2="8"></line>
+                <line x1="7" y1="12" x2="17" y2="12"></line>
+            </svg>
+            <span>ID Cards</span>
+        </button>
+    </div>
+
+    <!-- Hidden compatibility elements for tab switcher in script.js -->
+    <div style="display: none;">
+        <button id="lostTab" class="active" type="button"><span id="lostTabBadge">0</span></button>
+        <button id="foundTab" type="button"><span id="foundTabBadge">0</span></button>
+    </div>
+
+    <!-- ======================================================================
+         Main Content: Recently Reported Items
+         ====================================================================== -->
+    <main class="page-body-editorial" id="community-board">
+        <div class="section-editorial-header">
+            <h2 class="section-editorial-title">Recently Reported Items</h2>
+            <a href="#community-board" class="link-view-all" id="viewAllLink">
+                <span>View All Items</span>
+                <span style="font-size: 1.1rem;">&rarr;</span>
+            </a>
+        </div>
+
+        <!-- 4-Column Responsive Cards Grid -->
+        <div id="itemsContainer" class="items-editorial-grid">
+            <p id="emptyMessage" class="empty-state">Loading campus listings from database...</p>
+        </div>
+    </main>
+
+    <!-- ======================================================================
+         How It Works (Horizontal 4-Step Bar from Reference Image)
+         ====================================================================== -->
+    <section class="how-it-works-bar-container" id="how-it-works">
+        <div class="how-it-works-bar">
+            <!-- Step 1 -->
+            <div class="how-step-item">
+                <div class="step-icon-bubble">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <div class="step-text-content">
+                    <h3 class="step-title-bold">1. Report or Find</h3>
+                    <p class="step-desc-muted">Post lost or found items with details and photos.</p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="how-step-item">
+                <div class="step-icon-bubble">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <div class="step-text-content">
+                    <h3 class="step-title-bold">2. Connect</h3>
+                    <p class="step-desc-muted">Match with the rightful owner through messages.</p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="how-step-item">
+                <div class="step-icon-bubble">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <polyline points="9 12 11 14 15 10"></polyline>
+                    </svg>
+                </div>
+                <div class="step-text-content">
+                    <h3 class="step-title-bold">3. Verify</h3>
+                    <p class="step-desc-muted">Confirm ownership securely with campus verification.</p>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="how-step-item">
+                <div class="step-icon-bubble">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </div>
+                <div class="step-text-content">
+                    <h3 class="step-title-bold">4. Reunite</h3>
+                    <p class="step-desc-muted">Give items back and make someone's day!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about-section" style="max-width: 1240px; margin: 0 auto 60px; padding: 0 24px; width: 100%; box-sizing: border-box;">
+        <div style="background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: var(--radius-xl); padding: 36px 40px; display: flex; align-items: center; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
+            <div style="max-width: 720px;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.6rem; color: #342638; margin-bottom: 10px;">About CampusFind Safety &amp; Trust</h3>
+                <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                    CampusFind is built specifically for university students, staff, and campus visitors. Every report is verified, and sensitive identification information is kept private until legitimate ownership is confirmed.
+                </p>
+            </div>
+            <div style="display: flex; gap: 14px;">
+                <a href="#report-section" class="btn-report-hero" id="aboutReportBtn" style="text-decoration: none;">Post a Report</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         Report Modal Dialog
+         ====================================================================== -->
+    <div id="modalOverlay" class="modal-backdrop" hidden>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <div>
+                    <h2 id="modalTitle" class="modal-title">Report an Item</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">Submit details to alert the campus community</p>
+                </div>
+                <button type="button" id="closeModalBtn" class="close-x-btn" aria-label="Close dialog">✕</button>
+            </div>
+
+            <form id="reportForm">
+                <div class="form-grid">
+                    <!-- Report Type Selector Pill -->
+                    <div class="form-group">
+                        <label class="form-label" for="itemType">Report Type <span style="color: var(--status-lost)">*</span></label>
+                        <div class="type-segmented-control">
+                            <label class="type-option">
+                                <input type="radio" name="itemTypeRadio" id="typeRadioLost" value="lost" checked>
+                                <span class="type-option-content lost-type">
+                                    I Lost Something
+                                </span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="itemTypeRadio" id="typeRadioFound" value="found">
+                                <span class="type-option-content found-type">
+                                    I Found Something
+                                </span>
+                            </label>
+                        </div>
+                        <select id="itemType" class="sr-only">
+                            <option value="lost" selected>Lost Item</option>
+                            <option value="found">Found Item</option>
+                        </select>
+                    </div>
+
+                    <!-- Item Name -->
+                    <div class="form-group">
+                        <label class="form-label" for="itemName">Item Name &amp; Model <span style="color: var(--status-lost)">*</span></label>
+                        <input id="itemName" class="form-input"
+                            placeholder="e.g. Wireless Headphones, Black Water Bottle, Blue Backpack" required>
+                    </div>
+
+                    <!-- Description / Distinguishing Details -->
+                    <div class="form-group">
+                        <label class="form-label" for="itemDescription">Description &amp; Key Features</label>
+                        <textarea id="itemDescription" class="form-input form-textarea" rows="2"
+                            placeholder="e.g. Matte black over-ear headphones with small scratch on the left cup..."></textarea>
+                    </div>
+
+                    <!-- Upload Item Photograph Section (Optional for both Lost & Found) -->
+                    <div class="form-group photo-upload-form-group">
+                        <label class="form-label" style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <span>Upload Item Photograph</span>
+                            <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);">Optional &bull; Max 5 MB</span>
+                        </label>
+
+                        <!-- Hidden File Input -->
+                        <input type="file" id="itemPhotoInput" name="image" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
+
+                        <!-- Drag and Dropzone -->
+                        <div id="photoDropzone" class="photo-dropzone" role="button" tabindex="0" aria-label="Upload item photograph">
+                            <div class="dropzone-icon-wrap">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                            </div>
+                            <div class="dropzone-text-wrap">
+                                <span class="dropzone-prompt"><strong>Click to browse</strong> or drag &amp; drop photo</span>
+                                <span class="dropzone-hint">Supports JPG, JPEG, PNG, WEBP (up to 5 MB)</span>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview Box -->
+                        <div id="photoPreviewContainer" class="photo-preview-container" style="display: none;">
+                            <div class="photo-preview-card">
+                                <img id="photoPreviewImg" class="photo-preview-img" src="" alt="Selected item photo preview">
+                                <div class="photo-preview-meta">
+                                    <span id="photoPreviewName" class="photo-preview-filename">photo.jpg</span>
+                                    <span id="photoPreviewDimensions" class="photo-preview-filesize">0 KB</span>
+                                    <div class="photo-preview-actions">
+                                        <button type="button" id="photoChangeBtn" class="photo-action-btn photo-change-btn" title="Choose another photo">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="17 8 12 3 7 8"></polyline>
+                                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                                            </svg>
+                                            <span>Change</span>
+                                        </button>
+                                        <button type="button" id="photoRemoveBtn" class="photo-action-btn photo-remove-btn" title="Remove selected photo">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                            <span>Remove</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Validation Error Banner -->
+                        <div id="photoValidationError" class="photo-validation-error" style="display: none;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <span id="photoValidationMsg">File exceeds 5 MB limit.</span>
+                        </div>
+                    </div>
+
+                    <!-- Category & Date Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                        <div class="form-group">
+                            <label class="form-label" for="itemCategory">Category <span style="color: var(--status-lost)">*</span></label>
+                            <select id="itemCategory" class="form-input" required>
+                                <option value="">Select category</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="ID Cards">ID Cards</option>
+                                <option value="Books & Notes">Books &amp; Notes</option>
+                                <option value="Keys">Keys</option>
+                                <option value="Accessories">Accessories</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="itemDate">Date <span style="color: var(--status-lost)">*</span></label>
+                            <input id="itemDate" class="form-input" type="date" required>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label class="form-label" for="itemLocation">Campus Location <span style="color: var(--status-lost)">*</span></label>
+                        <input id="itemLocation" class="form-input"
+                            placeholder="e.g. Central Library 2nd Floor, Student Center Cafeteria" required>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="form-group">
+                        <label class="form-label" for="itemContact">Your Contact Information (Mobile or Email) <span style="color: var(--status-lost)">*</span></label>
+                        <input id="itemContact" class="form-input" type="text"
+                            placeholder="e.g. +91 98765 43210 or student@campus.edu"
+                            value="{% if user.email %}{{ user.email }}{% endif %}" required>
+                    </div>
+                    <div class="form-group" style="margin-top: -6px; margin-bottom: 8px;">
+                        <label style="display: flex; align-items: flex-start; gap: 9px; cursor: pointer; font-size: 0.85rem; color: var(--text-primary); font-weight: 500;">
+                            <input type="checkbox" id="itemShareContact" checked style="accent-color: var(--color-copper); width: 16px; height: 16px; margin-top: 2px;">
+                            <span>Allow verified campus students to contact me directly (WhatsApp / Email)</span>
+                        </label>
+                        <p style="font-size: 0.76rem; color: var(--text-secondary); margin: 3px 0 0 25px;">
+                            If unchecked, your direct contact details are kept private and students can only submit official claim verification requests.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="cancelButton" class="btn-report-hero" style="background: transparent; border-color: var(--border-color); color: var(--text-secondary);">Cancel</button>
+                    <button type="submit" id="submitReportBtn" class="btn-primary">
+                        <span>Submit Report</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         Claim / Contact Verification Modal
+         ====================================================================== -->
+    <div id="claimModal" class="modal-backdrop" hidden>
+        <div class="modal-card" style="max-width: 500px;" role="dialog" aria-modal="true" aria-labelledby="claimModalTitle">
+            <div class="modal-header">
+                <div>
+                    <h2 id="claimModalTitle" class="modal-title">Item Details &amp; Contact</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">Verify details and reach the reporter directly</p>
+                </div>
+                <button type="button" id="closeClaimModalBtn" class="close-x-btn" aria-label="Close dialog">✕</button>
+            </div>
+
+            <div style="padding: 22px 28px;">
+                <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px;">
+                    <div style="width: 100%; height: 175px; position: relative; overflow: hidden; background: #EDE4D8;">
+                        <img id="claimItemMediaImg" src="/static/myapp/images/categories/others.jpg" alt="Item photo" 
+                            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+                            onerror="this.src='/static/myapp/images/categories/others.jpg'">
+                        <span id="claimItemBadge" class="card-status-badge badge-lost-terracotta" style="position: absolute; top: 12px; left: 12px;">LOST</span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span id="claimItemCategoryBadge" style="font-size: 0.75rem; font-weight: 700; color: var(--color-copper); background: var(--card-bg); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border-color);">Category</span>
+                            <span id="detectedChannelBadge" style="font-size: 0.78rem; font-weight: 700; color: var(--color-copper);">📧 Verified Contact</span>
+                        </div>
+                        <h3 id="claimItemName" style="font-size: 1.15rem; font-weight: 800; color: #342638; margin-bottom: 4px;">Item Name</h3>
+                        <p id="claimItemLocation" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">📍 Location</p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 252, 247, 0.9); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+                    <h5 style="font-size: 0.88rem; font-weight: 700; color: #342638; margin-bottom: 4px;">🛡️ Campus Verification Notice</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+                        To safely complete a handover, please be prepared to verify ownership (such as matching serial number, passcode, or unique details).
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Reporter Contact</span>
+                        <button type="button" id="copyContactBtn" style="background: none; border: none; font-size: 0.82rem; font-weight: 700; color: var(--color-copper); cursor: pointer;">Copy</button>
+                    </div>
+                    <div style="background: #ffffff; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 11px 16px; font-weight: 700; color: #342638; word-break: break-all;" id="claimContactValue">
+                        Loading...
+                    </div>
+                </div>
+
+                <!-- Dynamic Contact & Verification Actions -->
+                <div id="contactActionWrapper" class="contact-action-wrapper">
+                    <a id="btnContactUs" href="#" class="btn-contact-us" title="Contact Us">
+                        <span id="contactBtnIcon" class="contact-btn-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </span>
+                        <span class="contact-btn-label">Contact Reporter</span>
+                    </a>
+                </div>
+
+                <!-- Collapsible Official Claim / Handover Form -->
+                <div id="claimFormSection" style="display: none; margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border-color);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <h4 style="font-size: 0.92rem; font-weight: 700; color: #342638; margin: 0;">
+                            📋 Submit Verification Request
+                        </h4>
+                        <span style="font-size: 0.75rem; background: var(--bg-primary); padding: 2px 8px; border-radius: 999px; color: var(--color-copper); font-weight: 600;">Campus Record</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 12px;">
+                        Submit details verifying that this item belongs to you. The reporter and campus admin will be notified.
+                    </p>
+                    <form id="itemClaimForm" style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="hidden" id="claimItemId" value="">
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem;" for="claimantName">Your Full Name <span style="color: var(--status-lost)">*</span></label>
+                            <input type="text" id="claimantName" class="form-input" style="padding: 9px 12px; font-size: 0.88rem;"
+                                value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}" placeholder="e.g. Alex Johnson" required>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem;" for="claimantContact">Your Contact Information (Mobile or Email) <span style="color: var(--status-lost)">*</span></label>
+                            <input type="text" id="claimantContact" class="form-input" style="padding: 9px 12px; font-size: 0.88rem;"
+                                value="{% if user.is_authenticated and user.email %}{{ user.email }}{% endif %}" placeholder="e.g. +91 98765 43210 or student@campus.edu" required>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem;" for="claimantMessage">Verification Details / Proof of Ownership <span style="color: var(--status-lost)">*</span></label>
+                            <textarea id="claimantMessage" class="form-textarea" rows="2" style="padding: 9px 12px; font-size: 0.85rem;"
+                                placeholder="Describe identifying marks, color nuances, serial numbers, wallpapers, contents, etc..." required></textarea>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 4px;">
+                            <button type="submit" id="submitClaimBtn" class="btn-primary" style="flex: 1; min-height: 42px; font-size: 0.88rem;">
+                                Submit Verification
+                            </button>
+                            <button type="button" id="toggleClaimFormBtn" class="btn-report-hero" style="background: transparent; border-color: var(--border-color); color: var(--text-secondary); min-height: 42px; font-size: 0.88rem;">
+                                Close
+                            </button>
+                        </div>
+                        <div id="claimFormFeedback" style="font-size: 0.82rem; margin-top: 6px; display: none; padding: 8px 12px; border-radius: var(--radius-sm);"></div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="deleteItemModalBtn" style="display: none;">Delete Report</button>
+                <button type="button" id="doneClaimModalBtn" class="btn-primary" style="flex: 1;">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         CampusFind AI Chatbot (Fixed to bottom-right)
+         ====================================================================== -->
+    <div id="chatbot-widget">
+        <button id="chatbot-toggle" type="button">
+            ✨ Ask CampusFind AI
+        </button>
+
+        <div id="chatbot-window" class="chatbot-hidden">
+            <div class="chatbot-header">
+                <div>
+                    <strong>CampusFind AI</strong>
+                    <small>Your Lost &amp; Found Assistant</small>
+                </div>
+                <button id="chatbot-close" type="button" aria-label="Close chatbot">×</button>
+            </div>
+
+            <div id="chatbot-messages">
+                <div class="bot-message">
+                    Hi! 👋 I'm your CampusFind AI assistant. How can I help you find or report an item today?
+                </div>
+            </div>
+
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="Ask me anything..." maxlength="2000">
+                <button id="chatbot-send" type="button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img class="brand-logo-img" src="{% static 'myapp/logo-symbol.svg' %}" alt="CampusFind" width="30" height="30">
+                <span class="footer-brand"><span class="brand-name-campus">Campus</span><span class="brand-name-find">Find<span class="brand-sparkle" style="font-size: 0.6rem;">✦</span></span></span>
+            </div>
+
+            <div>
+                <span>A kinder campus for everyone &bull; Student-verified lost &amp; found network.</span>
+            </div>
+
+            <div>
+                <span>Campus Safety &bull; ext. 4357</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'myapp/script.js' %}?v={% now 'U' %}"></script>
+    <script src="{% static 'myapp/chatbot.js' %}?v={% now 'U' %}"></script>
+</body>
+
+</html>

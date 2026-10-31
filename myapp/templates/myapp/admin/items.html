@@ -1,0 +1,245 @@
+{% extends "myapp/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Manage Items | CampusFind Admin{% endblock %}
+{% block page_title %}Manage Items{% endblock %}
+{% block page_subtitle %}Search, filter, update, or moderate all reported campus items{% endblock %}
+
+{% block content %}
+<!-- Filter & Search Bar -->
+<div class="filter-bar-container">
+    <form method="GET" action="{% url 'admin_items' %}" class="filter-form">
+        <div class="search-input-wrapper">
+            <svg class="search-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" name="q" value="{{ query }}" class="admin-input" placeholder="Search by item name or location...">
+        </div>
+
+        <select name="category" class="admin-select">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="type" class="admin-select">
+            <option value="">All Types</option>
+            <option value="lost" {% if selected_type == 'lost' %}selected{% endif %}>Lost Items</option>
+            <option value="found" {% if selected_type == 'found' %}selected{% endif %}>Found Items</option>
+        </select>
+
+        <button type="submit" class="btn-admin btn-admin-copper">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            Filter
+        </button>
+
+        {% if query or selected_category or selected_type %}
+            <a href="{% url 'admin_items' %}" class="btn-admin btn-admin-outline">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Items Table Card -->
+<div class="panel-card">
+    <div class="panel-card-header">
+        <h3 class="panel-card-title">
+            <span>Reported Items ({{ total_count }})</span>
+        </h3>
+        <div class="panel-card-actions">
+            <input type="text" data-table-search="itemsTable" class="admin-input" placeholder="Quick in-table search..." style="max-width: 220px; padding: 7px 14px 7px 34px;">
+        </div>
+    </div>
+
+    <div class="table-responsive-wrapper">
+        <table id="itemsTable" class="admin-table">
+            <thead>
+                <tr>
+                    <th>Item ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>Contact</th>
+                    <th>Reported By</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td><strong>#{{ item.id }}</strong></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <a href="{{ item.image_url }}" target="_blank" rel="noopener noreferrer" title="View Full Photograph" style="display: block; width: 44px; height: 44px; border-radius: 8px; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border-color); background: var(--bg-primary); cursor: zoom-in;">
+                                    <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/static/myapp/images/categories/others.jpg'">
+                                </a>
+                                <div>
+                                    <strong>{{ item.name }}</strong>
+                                    {% if item.description %}
+                                        <div style="font-size: 0.78rem; color: var(--text-secondary); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            {{ item.description }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.item_type == 'lost' %}
+                                <span class="badge badge-lost">Lost</span>
+                            {% else %}
+                                <span class="badge badge-found">Found</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.location }}</td>
+                        <td>{{ item.date|date:"M j, Y" }}</td>
+                        <td><code>{{ item.contact }}</code></td>
+                        <td>
+                            {% if item.user %}
+                                <span class="badge badge-neutral">{{ item.user.username }}</span>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 0.8rem;">Guest</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <!-- View / Edit Modal Trigger -->
+                            <button type="button" class="btn-admin btn-admin-sm btn-admin-outline" onclick="openEditModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.item_type|escapejs }}', '{{ item.category|escapejs }}', '{{ item.location|escapejs }}', '{{ item.contact|escapejs }}', '{{ item.description|escapejs }}', '{{ item.date|date:"Y-m-d" }}')">
+                                Edit
+                            </button>
+
+                            <!-- Delete Modal Trigger -->
+                            <button type="button" class="btn-admin btn-admin-sm btn-admin-danger" onclick="openDeleteModal({{ item.id }}, '{{ item.name|escapejs }}')">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            No items found matching the selected criteria.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ================= EDIT ITEM MODAL ================= -->
+<div id="editItemModal" class="admin-modal-backdrop">
+    <div class="admin-modal-box">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Item Details</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('editItemModal')">&times;</button>
+        </div>
+        <form id="editItemForm" method="POST" action="">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="edit_name" name="name" required maxlength="200">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>Report Type</label>
+                        <select id="edit_item_type" name="item_type" required>
+                            <option value="lost">Lost</option>
+                            <option value="found">Found</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="edit_category" name="category" required>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="edit_location" name="location" required maxlength="200">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="edit_date" name="date" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Info</label>
+                    <input type="text" id="edit_contact" name="contact" required maxlength="150">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="edit_description" name="description" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-admin btn-admin-outline" onclick="closeModal('editItemModal')">Cancel</button>
+                <button type="submit" class="btn-admin btn-admin-copper">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= DELETE CONFIRMATION MODAL ================= -->
+<div id="deleteItemModal" class="admin-modal-backdrop">
+    <div class="admin-modal-box" style="max-width: 440px;">
+        <div class="modal-header">
+            <h3 class="modal-title" style="color: var(--status-rejected);">Confirm Deletion</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('deleteItemModal')">&times;</button>
+        </div>
+        <form id="deleteItemForm" method="POST" action="">
+            {% csrf_token %}
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">
+                    This will permanently remove the item and all associated claim requests from the database.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-admin btn-admin-outline" onclick="closeModal('deleteItemModal')">Cancel</button>
+                <button type="submit" class="btn-admin btn-admin-danger">Delete Item</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openEditModal(id, name, type, cat, loc, contact, desc, date) {
+    const form = document.getElementById('editItemForm');
+    form.action = `/admin-dashboard/items/${id}/edit/`;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_item_type').value = type;
+    document.getElementById('edit_category').value = cat;
+    document.getElementById('edit_location').value = loc;
+    document.getElementById('edit_contact').value = contact;
+    document.getElementById('edit_description').value = desc;
+    document.getElementById('edit_date').value = date;
+    openModal('editItemModal');
+}
+
+function openDeleteModal(id, name) {
+    const form = document.getElementById('deleteItemForm');
+    form.action = `/admin-dashboard/items/${id}/delete/`;
+    document.getElementById('deleteItemName').textContent = `"${name}" (#${id})`;
+    openModal('deleteItemModal');
+}
+</script>
+{% endblock %}
+

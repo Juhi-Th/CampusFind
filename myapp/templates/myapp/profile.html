@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CampusFind User Profile - Manage your lost & found report history and account settings.">
+    <title>{{ user.username }} | CampusFind Profile</title>
+
+    <!-- Google Fonts: Playfair Display (Headings) & Plus Jakarta Sans (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    {% load static %}
+    <link rel="icon" type="image/svg+xml" href="{% static 'myapp/logo-symbol.svg' %}">
+    <link rel="stylesheet" href="{% static 'myapp/style.css' %}?v={% now 'U' %}">
+
+    <style>
+        :root {
+            --bg-primary: #F4EBDD;
+            --bg-secondary: #EDE4D8;
+            --color-aubergine: #342638;
+            --color-aubergine-hover: #48354e;
+            --color-copper: #B66F52;
+            --color-copper-hover: #9c5c42;
+            --text-primary: #241829;
+            --text-secondary: #6F6870;
+            --card-bg: #FFFCF7;
+            --card-bg-hover: #ffffff;
+            --border-color: #E8DED1;
+            --border-focus: #B66F52;
+            --status-found: #9CCB87;
+            --status-lost: #C96D45;
+
+            --font-heading: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 26px;
+            --radius-full: 9999px;
+
+            --shadow-soft: 0 4px 20px rgba(52, 38, 56, 0.05);
+            --shadow-card: 0 10px 30px rgba(52, 38, 56, 0.06);
+            --transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.profile-page {
+            font-family: var(--font-sans);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Top Sticky Header */
+        .profile-nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            width: 100%;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: var(--transition);
+        }
+
+        .profile-nav {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .profile-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .profile-brand .brand-logo-img {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            transition: transform 0.25s ease;
+            display: block;
+        }
+
+        .profile-brand:hover .brand-logo-img {
+            transform: scale(1.08) rotate(-4deg);
+        }
+
+        .profile-brand .brand-name {
+            font-family: var(--font-heading);
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            display: inline-flex;
+            align-items: baseline;
+            line-height: 1;
+        }
+
+        .profile-brand .brand-name-campus {
+            color: #342638;
+        }
+
+        [data-theme="dark"] .profile-brand .brand-name-campus {
+            color: #f8f4ed;
+        }
+
+        .profile-brand .brand-name-find {
+            color: #B66F52;
+            position: relative;
+        }
+
+        .profile-brand .brand-sparkle {
+            font-size: 0.72rem;
+            color: #B66F52;
+            margin-left: 2px;
+            vertical-align: super;
+            font-style: normal;
+        }
+
+        .profile-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-nav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--color-aubergine);
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: var(--radius-full);
+            font-size: 0.88rem;
+            font-weight: 700;
+            transition: var(--transition);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .btn-nav-pill:hover {
+            background: var(--bg-secondary);
+            border-color: var(--color-copper);
+            color: var(--color-copper);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav-signout {
+            background: #fdf2f2;
+            border: 1px solid #fbdad0;
+            color: var(--status-lost);
+        }
+
+        .btn-nav-signout:hover {
+            background: var(--status-lost);
+            border-color: var(--status-lost);
+            color: #ffffff;
+        }
+
+        /* Top Hero Section */
+        .profile-hero-wrap {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 36px 0 56px 0;
+            position: relative;
+        }
+
+        .profile-header-container {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+        }
+
+        .user-identity-box {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .user-avatar-circle {
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: #342638;
+            color: #F4EBDD;
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(52, 38, 56, 0.2);
+            border: 3px solid rgba(182, 111, 82, 0.4);
+            text-transform: uppercase;
+        }
+
+        .user-identity-text h1 {
+            margin: 0;
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-aubergine);
+            letter-spacing: -0.01em;
+        }
+
+        .user-identity-text p {
+            margin: 6px 0 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .user-join-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Stats Cards in Hero */
+        .profile-stats-grid {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            box-shadow: var(--shadow-soft);
+            padding: 16px 24px;
+            border-radius: var(--radius-lg);
+            min-width: 120px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-pill-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+            border-color: var(--color-copper);
+        }
+
+        .stat-pill-card .stat-val {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--color-aubergine);
+            line-height: 1.1;
+        }
+
+        .stat-pill-card .stat-label {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 6px;
+        }
+
+        /* Alerts Area */
+        .alerts-wrapper {
+            max-width: 1360px;
+            margin: 20px auto 0;
+            padding: 0 32px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .alert-item.success {
+            background: #f4fbf1;
+            color: #276721;
+            border: 1.5px solid #c8e6bb;
+        }
+
+        .alert-item.error {
+            background: #fdf2f2;
+            color: #991b1b;
+            border: 1.5px solid #fbdad0;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: inherit;
+        }
+
+        /* Main Content Grid */
+        .profile-main-container {
+            max-width: 1360px;
+            margin: -24px auto 80px;
+            padding: 0 32px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 960px) {
+            .profile-main-container {
+                grid-template-columns: 1fr;
+                margin-top: 24px;
+            }
+        }
+
+        /* Panel Card */
+        .panel-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            border: 1.5px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            padding: 30px;
+            margin-bottom: 28px;
+            transition: var(--transition);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--color-aubergine);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-badge {
+            background: var(--bg-secondary);
+            color: var(--color-aubergine);
+            border: 1px solid var(--border-color);
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-family: var(--font-sans);
+        }
+
+        /* Reported Items History List */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .item-history-row {
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .item-history-row {
+            background: #241829;
+            border-color: #43334a;
+        }
+
+        .item-history-row:hover {
+            border-color: var(--color-copper);
+            box-shadow: var(--shadow-card);
+            transform: translateY(-2px);
+        }
+
+        .item-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .item-type-tag {
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding: 5px 12px;
+            border-radius: var(--radius-full);
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .type-lost {
+            background: rgba(201, 109, 69, 0.12);
+            color: var(--status-lost);
+            border: 1px solid rgba(201, 109, 69, 0.3);
+        }
+
+        .type-found {
+            background: rgba(156, 203, 135, 0.18);
+            color: #276721;
+            border: 1px solid rgba(156, 203, 135, 0.4);
+        }
+
+        .item-details h4 {
+            margin: 0 0 6px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--color-aubergine);
+        }
+
+        .item-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+        }
+
+        .item-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .item-contact-preview {
+            background: var(--bg-primary);
+            color: var(--color-aubergine);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Delete Button */
+        .btn-delete-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fdf2f2;
+            color: var(--status-lost);
+            border: 1px solid #fbdad0;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-delete-item:hover {
+            background: var(--status-lost);
+            color: #ffffff;
+            border-color: var(--status-lost);
+            box-shadow: 0 4px 12px rgba(201, 109, 69, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Empty State */
+        .empty-history {
+            text-align: center;
+            padding: 56px 24px;
+            color: var(--text-secondary);
+        }
+
+        .empty-history-icon {
+            font-size: 2.8rem;
+            margin-bottom: 14px;
+        }
+
+        .empty-history h3 {
+            margin: 0 0 8px;
+            font-family: var(--font-heading);
+            color: var(--color-aubergine);
+            font-size: 1.3rem;
+        }
+
+        .empty-history p {
+            margin: 0 0 20px;
+            font-size: 0.92rem;
+            max-width: 420px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+
+        /* Form Controls for Profile */
+        .form-row {
+            margin-bottom: 18px;
+        }
+
+        .form-row label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-aubergine);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 11px 16px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.92rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: #ffffff;
+            box-sizing: border-box;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        [data-theme="dark"] .form-control {
+            background: #241829;
+            color: #f8f4ed;
+            border-color: #43334a;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-copper);
+            box-shadow: 0 0 0 3px rgba(182, 111, 82, 0.15);
+        }
+
+        .form-helper-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .btn-save-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            background: #342638;
+            color: #ffffff;
+            border: none;
+            padding: 13px 20px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 14px rgba(52, 38, 56, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-save-profile:hover {
+            background: var(--color-copper);
+            box-shadow: 0 6px 18px rgba(182, 111, 82, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* Danger Zone Card */
+        .danger-panel {
+            border: 1.5px solid #fbdad0;
+            background: #fffdfc;
+        }
+
+        [data-theme="dark"] .danger-panel {
+            background: #2b1f30;
+            border-color: rgba(201, 109, 69, 0.4);
+        }
+
+        .danger-panel .panel-title {
+            color: var(--status-lost);
+        }
+
+        .danger-notice {
+            font-size: 0.86rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        .btn-open-delete-account {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            background: #fdf2f2;
+            color: var(--status-lost);
+            border: 1.5px solid #fbdad0;
+            padding: 11px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-open-delete-account:hover {
+            background: var(--status-lost);
+            color: #ffffff;
+            border-color: var(--status-lost);
+            box-shadow: 0 4px 14px rgba(201, 109, 69, 0.3);
+        }
+
+        /* Confirmation Dialog Backdrop */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(36, 24, 41, 0.65);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .modal-overlay[hidden] {
+            display: none !important;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            border: 1.5px solid var(--border-color);
+            max-width: 480px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(52, 38, 56, 0.25);
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .modal-box-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .modal-icon-danger {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #fdf2f2;
+            color: var(--status-lost);
+            border: 1px solid #fbdad0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .modal-box h3 {
+            margin: 0;
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            color: var(--color-aubergine);
+        }
+
+        .modal-box p {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            margin: 0 0 22px;
+            line-height: 1.5;
+        }
+
+        .modal-box-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--color-aubergine);
+            padding: 10px 18px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-secondary);
+        }
+
+        .btn-confirm-delete {
+            background: var(--status-lost);
+            border: none;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-confirm-delete:hover {
+            background: #b35630;
+            box-shadow: 0 4px 14px rgba(201, 109, 69, 0.35);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--color-aubergine);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--color-copper);
+            transform: translateY(-1px) scale(1.05);
+        }
+
+        .theme-toggle-btn .sun-icon,
+        .theme-toggle-btn .moon-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -9px;
+            margin-left: -9px;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
+            pointer-events: none;
+        }
+
+        html:not([data-theme="dark"]) .theme-toggle-btn .sun-icon,
+        html[data-theme="light"] .theme-toggle-btn .sun-icon {
+            transform: rotate(90deg) scale(0);
+            opacity: 0;
+        }
+
+        html:not([data-theme="dark"]) .theme-toggle-btn .moon-icon,
+        html[data-theme="light"] .theme-toggle-btn .moon-icon {
+            transform: rotate(0) scale(1);
+            opacity: 1;
+        }
+
+        html[data-theme="dark"] .theme-toggle-btn .sun-icon {
+            transform: rotate(0) scale(1);
+            opacity: 1;
+            color: #eab308;
+        }
+
+        html[data-theme="dark"] .theme-toggle-btn .moon-icon {
+            transform: rotate(-90deg) scale(0);
+            opacity: 0;
+        }
+    </style>
+
+    <!-- Immediate Theme Initialization Script -->
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('campusfind_theme');
+                var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = savedTheme || (systemDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+<body class="profile-page">
+    <!-- Top Sticky Header -->
+    <header class="profile-nav-header">
+        <div class="profile-nav">
+            <a href="{% url 'home' %}" class="profile-brand" title="CampusFind Home">
+                <img class="brand-logo-img" src="{% static 'myapp/logo-symbol.svg' %}" alt="CampusFind Emblem" width="40" height="40">
+                <span class="brand-name"><span class="brand-name-campus">Campus</span><span class="brand-name-find">Find<span class="brand-sparkle">✦</span></span></span>
+            </a>
+
+            <div class="profile-nav-actions">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">
+                    <svg class="theme-icon moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="theme-icon sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" class="btn-nav-pill" style="border-color: var(--color-copper); color: var(--color-copper);">
+                    <span>Admin Dashboard</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'home' %}" class="btn-nav-pill">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Browse Items</span>
+                </a>
+                <a href="{% url 'logout' %}" class="btn-nav-pill btn-nav-signout">
+                    <span>Sign out</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Top Hero Section -->
+    <div class="profile-hero-wrap">
+        <div class="profile-header-container">
+            <div class="user-identity-box">
+                <div class="user-avatar-circle">
+                    {{ user.username|slice:":1" }}
+                </div>
+                <div class="user-identity-text">
+                    <h1>{{ user.username }}</h1>
+                    <p>
+                        <span>{{ user.email|default:"No email registered" }}</span>
+                        <span class="user-join-pill">Joined {{ user.date_joined|date:"M Y" }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="profile-stats-grid">
+                <div class="stat-pill-card">
+                    <div class="stat-val">{{ total_reported }}</div>
+                    <div class="stat-label">Reports</div>
+                </div>
+                <div class="stat-pill-card">
+                    <div class="stat-val" style="color: var(--status-lost);">{{ lost_count }}</div>
+                    <div class="stat-label">Lost Items</div>
+                </div>
+                <div class="stat-pill-card">
+                    <div class="stat-val" style="color: var(--status-found);">{{ found_count }}</div>
+                    <div class="stat-label">Found Items</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Messages Notifications -->
+    {% if messages %}
+    <div class="alerts-wrapper">
+        {% for message in messages %}
+        <div class="alert-item {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+            <span>{{ message }}</span>
+            <button type="button" class="alert-close" onclick="this.parentElement.remove()">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Container -->
+    <main class="profile-main-container">
+        <!-- Left Column: Report History -->
+        <div class="history-column">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <span>📦 Your Report History</span>
+                        <span class="panel-badge">{{ total_reported }} Reported</span>
+                    </h2>
+                    <a href="{% url 'home' %}#reportButton" class="btn-nav-pill" style="color: var(--color-copper); border-color: rgba(182, 111, 82, 0.4); font-size: 0.82rem;">
+                        <span>+ Report New Item</span>
+                    </a>
+                </div>
+
+                {% if items %}
+                <div class="items-list" id="userItemsList">
+                    {% for item in items %}
+                    <div class="item-history-row" id="item-row-{{ item.id }}">
+                        <div class="item-left" style="display: flex; align-items: center; gap: 14px;">
+                            <div style="width: 52px; height: 52px; border-radius: 10px; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border-color); background: var(--bg-secondary);">
+                                <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/static/myapp/images/categories/others.jpg'">
+                            </div>
+                            <div class="item-details">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <span class="item-type-tag {% if item.item_type == 'lost' %}type-lost{% else %}type-found{% endif %}">
+                                        {{ item.item_type|upper }}
+                                    </span>
+                                    <h4 style="margin: 0;">{{ item.name }}</h4>
+                                </div>
+                                <div class="item-meta">
+                                    <span>📍 {{ item.location }}</span>
+                                    <span>🏷️ {{ item.category }}</span>
+                                    <span>📅 {{ item.date|date:"M d, Y" }}</span>
+                                    <span class="item-contact-preview" title="Contact on file">📞 {{ item.contact }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="item-actions">
+                            <button type="button" class="btn-delete-item"
+                                onclick="openDeleteItemModal({{ item.id }}, '{{ item.name|escapejs }}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-history">
+                    <div class="empty-history-icon">🔍</div>
+                    <h3>No items reported yet</h3>
+                    <p>Have you lost something or found someone's belonging? Post a report on the campus board.</p>
+                    <a href="{% url 'home' %}" class="btn-save-profile" style="display: inline-flex; width: auto; padding: 11px 26px; border-radius: var(--radius-full);">
+                        <span>Go to Campus Board</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Edit Profile & Account Management -->
+        <div class="account-column">
+            <!-- Edit Profile Card -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3 class="panel-title">✏️ Edit Profile</h3>
+                </div>
+
+                <form method="POST" action="{% url 'edit_profile' %}">
+                    {% csrf_token %}
+
+                    <div class="form-row">
+                        <label for="profileUsername">Username</label>
+                        <input id="profileUsername" name="username" type="text" class="form-control"
+                            value="{{ user.username }}" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="profileEmail">Email Address</label>
+                        <input id="profileEmail" name="email" type="email" class="form-control"
+                            value="{{ user.email }}" placeholder="e.g. student@campus.edu">
+                        <div class="form-helper-text">Used for receiving inquiry emails when claimants contact you.</div>
+                    </div>
+
+                    <div style="border-top: 1px dashed var(--border-color); margin: 22px 0 18px;"></div>
+
+                    <h4 style="margin: 0 0 14px; font-size: 0.95rem; color: var(--color-aubergine);">Change Password <span style="font-weight: 400; font-size: 0.8rem; color: var(--text-secondary);">(Optional)</span></h4>
+
+                    <div class="form-row">
+                        <label for="currentPassword">Current Password</label>
+                        <input id="currentPassword" name="current_password" type="password" class="form-control"
+                            placeholder="Required only to change password">
+                    </div>
+
+                    <div class="form-row">
+                        <label for="newPassword">New Password</label>
+                        <input id="newPassword" name="new_password" type="password" class="form-control"
+                            placeholder="At least 6 characters">
+                    </div>
+
+                    <div class="form-row">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input id="confirmPassword" name="confirm_password" type="password" class="form-control"
+                            placeholder="Repeat new password">
+                    </div>
+
+                    <button type="submit" class="btn-save-profile" style="margin-top: 22px;">
+                        <span>Save Profile Changes</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Danger Zone: Delete Account -->
+            <div class="panel-card danger-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">⚠️ Danger Zone</h3>
+                </div>
+
+                <p class="danger-notice">
+                    Deleting your account will permanently remove your profile and all your reported items from CampusFind. This action cannot be reversed.
+                </p>
+
+                <button type="button" class="btn-open-delete-account" onclick="openDeleteAccountModal()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Delete Account</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Delete Item Confirmation -->
+    <div id="deleteItemModal" class="modal-overlay" hidden>
+        <div class="modal-box" role="dialog" aria-modal="true">
+            <div class="modal-box-header">
+                <div class="modal-icon-danger">🗑️</div>
+                <div>
+                    <h3>Delete Reported Item</h3>
+                </div>
+            </div>
+            <p>
+                Are you sure you want to delete <strong id="deleteItemTargetName">this item</strong>? It will be permanently removed from the CampusFind board.
+            </p>
+            <form id="deleteItemForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-box-actions">
+                    <button type="button" class="btn-cancel" onclick="closeDeleteItemModal()">Cancel</button>
+                    <button type="submit" class="btn-confirm-delete">Yes, Delete Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Delete Account Confirmation -->
+    <div id="deleteAccountModal" class="modal-overlay" hidden>
+        <div class="modal-box" role="dialog" aria-modal="true">
+            <div class="modal-box-header">
+                <div class="modal-icon-danger">⚠️</div>
+                <div>
+                    <h3>Delete Your Account</h3>
+                </div>
+            </div>
+            <p>
+                This will permanently delete your account <strong>{{ user.username }}</strong> and all your reported items.
+            </p>
+            <form method="POST" action="{% url 'delete_account' %}">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <label for="confirmDeleteUsername">Type your username <strong>"{{ user.username }}"</strong> to confirm:</label>
+                    <input id="confirmDeleteUsername" name="confirm_username" type="text" class="form-control" required autocomplete="off">
+                </div>
+
+                <div class="form-row">
+                    <label for="confirmDeletePassword">Enter your password:</label>
+                    <input id="confirmDeletePassword" name="password" type="password" class="form-control" required>
+                </div>
+
+                <div class="modal-box-actions" style="margin-top: 22px;">
+                    <button type="button" class="btn-cancel" onclick="closeDeleteAccountModal()">Cancel</button>
+                    <button type="submit" class="btn-confirm-delete">Permanently Delete Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Item Deletion Dialog
+        const deleteItemModal = document.getElementById("deleteItemModal");
+        const deleteItemForm = document.getElementById("deleteItemForm");
+        const deleteItemTargetName = document.getElementById("deleteItemTargetName");
+
+        function openDeleteItemModal(itemId, itemName) {
+            if (deleteItemTargetName) deleteItemTargetName.textContent = `"${itemName}"`;
+            if (deleteItemForm) {
+                deleteItemForm.action = `/profile/items/${itemId}/delete/`;
+                deleteItemForm.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                    try {
+                        const response = await fetch(`/api/items/${itemId}/delete/`, {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": csrfToken,
+                                "Content-Type": "application/json",
+                            }
+                        });
+                        if (response.ok) {
+                            const row = document.getElementById(`item-row-${itemId}`);
+                            if (row) {
+                                row.style.transition = "all 0.3s ease";
+                                row.style.opacity = "0";
+                                row.style.transform = "translateX(20px)";
+                                setTimeout(() => row.remove(), 300);
+                            } else {
+                                window.location.reload();
+                            }
+                            closeDeleteItemModal();
+                        } else {
+                            deleteItemForm.submit();
+                        }
+                    } catch {
+                        deleteItemForm.submit();
+                    }
+                };
+            }
+            if (deleteItemModal) deleteItemModal.hidden = false;
+        }
+
+        function closeDeleteItemModal() {
+            if (deleteItemModal) deleteItemModal.hidden = true;
+        }
+
+        // Account Deletion Dialog
+        const deleteAccountModal = document.getElementById("deleteAccountModal");
+
+        function openDeleteAccountModal() {
+            if (deleteAccountModal) deleteAccountModal.hidden = false;
+        }
+
+        function closeDeleteAccountModal() {
+            if (deleteAccountModal) deleteAccountModal.hidden = true;
+        }
+
+        // Close on clicking backdrop
+        window.onclick = function(e) {
+            if (e.target === deleteItemModal) closeDeleteItemModal();
+            if (e.target === deleteAccountModal) closeDeleteAccountModal();
+        };
+
+        // Theme Toggle Handler
+        const themeToggleBtn = document.getElementById("themeToggleBtn");
+        if (themeToggleBtn) {
+            function updateThemeTitle(theme) {
+                const title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                themeToggleBtn.setAttribute('title', title);
+                themeToggleBtn.setAttribute('aria-label', title);
+            }
+            updateThemeTitle(document.documentElement.getAttribute('data-theme') || 'light');
+
+            themeToggleBtn.addEventListener("click", function() {
+                const current = document.documentElement.getAttribute("data-theme") || "light";
+                const target = current === "dark" ? "light" : "dark";
+                document.documentElement.setAttribute("data-theme", target);
+                localStorage.setItem("campusfind_theme", target);
+                updateThemeTitle(target);
+            });
+        }
+    </script>
+</body>
+
+</html>

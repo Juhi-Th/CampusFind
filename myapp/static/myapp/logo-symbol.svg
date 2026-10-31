@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+  <!-- Soft Sun / Sky Backdrop -->
+  <circle cx="48" cy="46" r="36" fill="#EDE4D8" opacity="0.85"/>
+
+  <!-- Left Foliage Leaves (Sprouting Hope & Community) -->
+  <path d="M14 68 C8 60 7 48 15 42 C19 50 19 60 14 68 Z" fill="#B66F52"/>
+  <path d="M18 63 C14 53 16 42 24 36 C26 46 24 55 18 63 Z" fill="#B66F52" opacity="0.9"/>
+  <path d="M23 58 C21 50 24 40 31 34 C33 44 30 52 23 58 Z" fill="#B66F52" opacity="0.75"/>
+
+  <!-- Deep Aubergine Rolling Hills -->
+  <path d="M7 76 C9 62 18 52 35 50 C44 49 50 56 48 68 C42 72 24 78 7 76 Z" fill="#342638"/>
+  <path d="M46 64 C52 56 64 52 75 56 C84 59 90 68 88 78 C76 80 58 74 46 64 Z" fill="#342638"/>
+  <path d="M6 76 C14 83 26 86 40 80 C32 83 18 81 6 76 Z" fill="#241829"/>
+
+  <!-- Historic Campus Clock Tower -->
+  <!-- Steeple Spire -->
+  <path d="M47 11 L42 24 L52 24 Z" fill="#342638"/>
+  <circle cx="47" cy="10.5" r="1.5" fill="#342638"/>
+
+  <!-- Tower Main Body -->
+  <path d="M42 24 L42 54 L52 54 L52 24 Z" fill="#342638"/>
+
+  <!-- Tower Turrets / Side Buttresses -->
+  <path d="M38 41 L42 41 L42 54 L38 54 Z" fill="#342638"/>
+  <path d="M37 41 L40 36 L43 41 Z" fill="#342638"/>
+  <path d="M52 41 L56 41 L56 54 L52 54 Z" fill="#342638"/>
+  <path d="M51 41 L54 36 L57 41 Z" fill="#342638"/>
+
+  <!-- Clock Face with Hands -->
+  <circle cx="47" cy="31" r="4.2" fill="#F4EBDD"/>
+  <circle cx="47" cy="31" r="1.5" fill="#342638"/>
+  <line x1="47" y1="31" x2="47" y2="28.8" stroke="#342638" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="47" y1="31" x2="49.2" y2="31" stroke="#342638" stroke-width="0.8" stroke-linecap="round"/>
+
+  <!-- Arched Portal / Entrance -->
+  <path d="M44.5 54 L44.5 45 C44.5 43 49.5 43 49.5 45 L49.5 54 Z" fill="#F4EBDD"/>
+
+  <!-- Sky Sparkles / Guiding Stars -->
+  <path d="M70 22 Q70 28 76 28 Q70 28 70 34 Q70 28 64 28 Q70 28 70 22 Z" fill="#B66F52"/>
+  <path d="M78 34 Q78 38 82 38 Q78 38 78 42 Q78 38 74 38 Q78 38 78 34 Z" fill="#B66F52" opacity="0.85"/>
+
+  <!-- Winding Path in Warm Copper (Reconnecting Belongings) -->
+  <path d="M47 52 C46 60 38 64 30 70 C20 76 16 82 22 92 C28 88 38 80 48 76 C58 72 54 62 47 52 Z" fill="#B66F52"/>
+
+  <!-- Location Pin (Finding Lost Items) -->
+  <path d="M78 82 C73 75 68 70 68 64 C68 58 72.5 54 78 54 C83.5 54 88 58 88 64 C88 70 83 75 78 82 Z" fill="#B66F52"/>
+  <circle cx="78" cy="63.5" r="3.2" fill="#FFFCF7"/>
+</svg>
+

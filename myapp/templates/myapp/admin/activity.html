@@ -1,0 +1,90 @@
+{% extends "myapp/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Student Activity | CampusFind Admin{% endblock %}
+{% block page_title %}Student Activity{% endblock %}
+{% block page_subtitle %}Live chronological stream of item reports, claim submissions, and campus actions{% endblock %}
+
+{% block content %}
+<div class="filter-bar-container">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="{% url 'admin_activity' %}" class="btn-admin btn-admin-sm {% if not filter_type %}btn-admin-primary{% else %}btn-admin-outline{% endif %}">
+            All Events ({{ total_events }})
+        </a>
+        <a href="{% url 'admin_activity' %}?type=items" class="btn-admin btn-admin-sm {% if filter_type == 'items' %}btn-admin-copper{% else %}btn-admin-outline{% endif %}">
+            Item Reports
+        </a>
+        <a href="{% url 'admin_activity' %}?type=claims" class="btn-admin btn-admin-sm {% if filter_type == 'claims' %}btn-admin-copper{% else %}btn-admin-outline{% endif %}">
+            Claim Submissions
+        </a>
+    </div>
+
+    <div>
+        <input type="text" data-table-search="activityTable" class="admin-input" placeholder="Search activity..." style="max-width: 240px; padding: 7px 14px 7px 34px;">
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <h3 class="panel-card-title">
+            <span>Activity Timeline</span>
+        </h3>
+        <span class="badge badge-neutral">Chronological Audit</span>
+    </div>
+
+    <div class="table-responsive-wrapper">
+        <table id="activityTable" class="admin-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Activity Type</th>
+                    <th>Actor / Student</th>
+                    <th>Item Involved</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for act in activity_list %}
+                    <tr>
+                        <td style="white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">
+                            {{ act.timestamp|date:"M j, Y H:i" }}
+                        </td>
+                        <td>
+                            {% if act.type == 'lost_item' %}
+                                <span class="badge badge-lost">Reported Lost</span>
+                            {% elif act.type == 'found_item' %}
+                                <span class="badge badge-found">Reported Found</span>
+                            {% else %}
+                                <span class="badge badge-pending">Filed Claim</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="user-avatar-initials" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                    {{ act.actor|make_list|first|upper }}
+                                </div>
+                                <strong>{{ act.actor }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ act.item_name }}</strong>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                                {{ act.detail }}
+                            </span>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            No student activity recorded yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

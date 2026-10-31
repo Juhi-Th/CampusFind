@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 90" width="100%" height="100%" fill="none">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&amp;family=Plus+Jakarta+Sans:wght@700&amp;display=swap');
+      .brand-wordmark-campus {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 38px;
+        font-weight: 800;
+        fill: #342638;
+        letter-spacing: -0.02em;
+      }
+      .brand-wordmark-find {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 38px;
+        font-weight: 800;
+        fill: #B66F52;
+        letter-spacing: -0.02em;
+      }
+      .brand-subline {
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+        font-size: 9.5px;
+        font-weight: 700;
+        fill: #6F6870;
+        letter-spacing: 0.22em;
+      }
+    </style>
+  </defs>
+
+  <!-- ================= EMBLEM SYMBOL (Left) ================= -->
+  <g transform="translate(0, 0)">
+    <!-- Soft Sun / Sky Backdrop -->
+    <circle cx="44" cy="44" r="36" fill="#EDE4D8" opacity="0.85"/>
+
+    <!-- Left Foliage Leaves -->
+    <path d="M12 66 C6 58 5 46 13 40 C17 48 17 58 12 66 Z" fill="#B66F52"/>
+    <path d="M16 61 C12 51 14 40 22 34 C24 44 22 53 16 61 Z" fill="#B66F52" opacity="0.9"/>
+    <path d="M21 56 C19 48 22 38 29 32 C31 42 28 50 21 56 Z" fill="#B66F52" opacity="0.75"/>
+
+    <!-- Deep Aubergine Rolling Hills -->
+    <path d="M5 74 C7 60 16 50 33 48 C42 47 48 54 46 66 C40 70 22 76 5 74 Z" fill="#342638"/>
+    <path d="M44 62 C50 54 62 50 73 54 C82 57 88 66 86 76 C74 78 56 72 44 62 Z" fill="#342638"/>
+    <path d="M4 74 C12 81 24 84 38 78 C30 81 16 79 4 74 Z" fill="#241829"/>
+
+    <!-- Historic Campus Clock Tower -->
+    <!-- Steeple Spire -->
+    <path d="M45 9 L40 22 L50 22 Z" fill="#342638"/>
+    <circle cx="45" cy="8.5" r="1.5" fill="#342638"/>
+
+    <!-- Tower Body -->
+    <path d="M40 22 L40 52 L50 52 L50 22 Z" fill="#342638"/>
+
+    <!-- Turrets / Buttresses -->
+    <path d="M36 39 L40 39 L40 52 L36 52 Z" fill="#342638"/>
+    <path d="M35 39 L38 34 L41 39 Z" fill="#342638"/>
+    <path d="M50 39 L54 39 L54 52 L50 52 Z" fill="#342638"/>
+    <path d="M49 39 L52 34 L55 39 Z" fill="#342638"/>
+
+    <!-- Clock Face -->
+    <circle cx="45" cy="29" r="4.2" fill="#F4EBDD"/>
+    <circle cx="45" cy="29" r="1.5" fill="#342638"/>
+    <line x1="45" y1="29" x2="45" y2="26.8" stroke="#342638" stroke-width="0.8" stroke-linecap="round"/>
+    <line x1="45" y1="29" x2="47.2" y2="29" stroke="#342638" stroke-width="0.8" stroke-linecap="round"/>
+
+    <!-- Arched Portal -->
+    <path d="M42.5 52 L42.5 43 C42.5 41 47.5 41 47.5 43 L47.5 52 Z" fill="#F4EBDD"/>
+
+    <!-- Sky Sparkles -->
+    <path d="M67 20 Q67 26 73 26 Q67 26 67 32 Q67 26 61 26 Q67 26 67 20 Z" fill="#B66F52"/>
+    <path d="M75 32 Q75 36 79 36 Q75 36 75 40 Q75 36 71 36 Q75 36 75 32 Z" fill="#B66F52" opacity="0.85"/>
+
+    <!-- Winding Path in Warm Copper -->
+    <path d="M45 50 C44 58 36 62 28 68 C18 74 14 80 20 90 C26 86 36 78 46 74 C56 70 52 60 45 50 Z" fill="#B66F52"/>
+
+    <!-- Location Pin -->
+    <path d="M75 80 C70 73 65 68 65 62 C65 56 69.5 52 75 52 C80.5 52 85 56 85 62 C85 68 80 73 75 80 Z" fill="#B66F52"/>
+    <circle cx="75" cy="61.5" r="3.2" fill="#FFFCF7"/>
+  </g>
+
+  <!-- ================= WORDMARK (Right) ================= -->
+  <!-- "Campus" in Deep Aubergine (#342638) -->
+  <text x="96" y="52" class="brand-wordmark-campus">Campus</text>
+
+  <!-- "Find" in Warm Copper (#B66F52) -->
+  <text x="242" y="52" class="brand-wordmark-find">Find</text>
+
+  <!-- Delicate Guiding Sparkle Star on the 'd' of Find -->
+  <path d="M328 22 Q328 29 334 29 Q328 29 328 36 Q328 29 322 29 Q328 29 328 22 Z" fill="#B66F52"/>
+
+  <!-- Subtitle: —— CAMPUS LOST & FOUND —— -->
+  <line x1="98" y1="71" x2="124" y2="71" stroke="#B66F52" stroke-width="1.2" opacity="0.6"/>
+  <text x="133" y="74" class="brand-subline">CAMPUS LOST &amp; FOUND</text>
+  <line x1="298" y1="71" x2="324" y2="71" stroke="#B66F52" stroke-width="1.2" opacity="0.6"/>
+</svg>
+
